@@ -118,11 +118,50 @@ export interface DuckingSettings {
   releaseMs: number;
 }
 
+export interface PodcastShow {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  author: string;
+  ownerName: string;
+  ownerEmail?: string;
+  websiteUrl?: string;
+  language: string;
+  category: string;
+  subcategory?: string;
+  copyright: string;
+  explicitContent: boolean;
+  showType: 'episodic' | 'serial';
+  artworkLocalPath?: string;
+  artworkRemoteUrl?: string;
+  publicFeedUrl?: string;
+}
+
+export interface HostingConfig {
+  id: string;
+  name: string;
+  providerType: 'WEBDAV' | 'LOCAL';
+  serverUrl: string;
+  remoteBasePath: string;
+  publicBaseUrl: string;
+  username: string;
+  isDefault: boolean;
+}
+
 export interface PodcastEpisode {
   id: string; // GUID
   projectId: string;
+  showId?: string;
   title: string;
+  subtitle?: string;
   descriptionFa: string;
+  summary?: string;
+  episodeNumber?: number;
+  seasonNumber?: number;
+  episodeType?: 'full' | 'trailer' | 'bonus';
+  author?: string;
+  keywords?: string;
   jalaliPubDate: string;
   pubDateRfc822: string;
   enclosureUrl: string;
@@ -131,7 +170,8 @@ export interface PodcastEpisode {
   durationSeconds: number;
   category: string;
   artworkUrl: string;
-  publishingStatus: 'DRAFT' | 'READY' | 'UPLOADING' | 'PUBLISHED' | 'SCHEDULED' | 'FAILED';
+  publishingStatus: 'DRAFT' | 'READY' | 'UPLOADING' | 'PUBLISHED' | 'UPDATE_PENDING' | 'FAILED' | 'ARCHIVED';
+  checksum?: string;
 }
 
 export interface JalaliDateParts {

@@ -27,7 +27,8 @@ object DatabaseModule {
             context,
             ParsPodcastDatabase::class.java,
             ParsPodcastDatabase.DATABASE_NAME
-        ).fallbackToDestructiveMigration().build()
+        ).addMigrations(ParsPodcastDatabase.MIGRATION_1_2)
+            .build()
     }
 
     @Provides

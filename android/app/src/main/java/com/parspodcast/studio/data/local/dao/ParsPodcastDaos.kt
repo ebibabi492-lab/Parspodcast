@@ -153,12 +153,63 @@ interface VoiceDao {
 
 @Dao
 interface PublishingDao {
-    @Query("SELECT * FROM podcast_episodes ORDER BY pubDateRfc822 DESC")
+    // Shows
+    @Query("SELECT * FROM podcast_shows ORDER BY updatedAt DESC")
+    fun getAllShows(): Flow<List<PodcastShowEntity>>
+
+    @Query("SELECT * FROM podcast_shows WHERE id = :id")
+    suspend fun getShowById(id: String): PodcastShowEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertShow(show: PodcastShowEntity)
+
+    @Update
+    suspend fun updateShow(show: PodcastShowEntity)
+
+    @Delete
+    suspend fun deleteShow(show: PodcastShowEntity)
+
+    // Episodes
+    @Query("SELECT * FROM podcast_episodes ORDER BY publicationDateUtc DESC, createdAt DESC")
     fun getAllEpisodes(): Flow<List<PodcastEpisodeEntity>>
+
+    @Query("SELECT * FROM podcast_episodes WHERE show_id = :showId ORDER BY episodeNumber DESC, publicationDateUtc DESC")
+    fun getEpisodesForShow(showId: String): Flow<List<PodcastEpisodeEntity>>
+
+    @Query("SELECT * FROM podcast_episodes WHERE show_id = :showId ORDER BY episodeNumber DESC, publicationDateUtc DESC")
+    suspend fun getEpisodesForShowSync(showId: String): List<PodcastEpisodeEntity>
+
+    @Query("SELECT * FROM podcast_episodes WHERE id = :id")
+    suspend fun getEpisodeById(id: String): PodcastEpisodeEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEpisode(episode: PodcastEpisodeEntity)
 
     @Update
     suspend fun updateEpisode(episode: PodcastEpisodeEntity)
+
+    @Delete
+    suspend fun deleteEpisode(episode: PodcastEpisodeEntity)
+
+    @Query("DELETE FROM podcast_episodes WHERE id = :id")
+    suspend fun deleteEpisodeById(id: String)
+
+    // Hosting Configs
+    @Query("SELECT * FROM hosting_configs ORDER BY isDefault DESC, createdAt DESC")
+    fun getAllHostingConfigs(): Flow<List<HostingConfigEntity>>
+
+    @Query("SELECT * FROM hosting_configs WHERE isDefault = 1 LIMIT 1")
+    suspend fun getDefaultHostingConfig(): HostingConfigEntity?
+
+    @Query("SELECT * FROM hosting_configs WHERE id = :id")
+    suspend fun getHostingConfigById(id: String): HostingConfigEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHostingConfig(config: HostingConfigEntity)
+
+    @Update
+    suspend fun updateHostingConfig(config: HostingConfigEntity)
+
+    @Delete
+    suspend fun deleteHostingConfig(config: HostingConfigEntity)
 }

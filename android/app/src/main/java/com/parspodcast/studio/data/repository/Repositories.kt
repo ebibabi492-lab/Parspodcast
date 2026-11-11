@@ -227,18 +227,57 @@ class VoiceRepositoryImpl @Inject constructor(
 }
 
 interface PublishingRepository {
+    // Shows
+    fun getAllShows(): Flow<List<PodcastShowEntity>>
+    suspend fun getShowById(id: String): PodcastShowEntity?
+    suspend fun insertShow(show: PodcastShowEntity)
+    suspend fun updateShow(show: PodcastShowEntity)
+    suspend fun deleteShow(show: PodcastShowEntity)
+
+    // Episodes
     fun getAllEpisodes(): Flow<List<PodcastEpisodeEntity>>
+    fun getEpisodesForShow(showId: String): Flow<List<PodcastEpisodeEntity>>
+    suspend fun getEpisodesForShowSync(showId: String): List<PodcastEpisodeEntity>
+    suspend fun getEpisodeById(id: String): PodcastEpisodeEntity?
     suspend fun insertEpisode(episode: PodcastEpisodeEntity)
     suspend fun updateEpisode(episode: PodcastEpisodeEntity)
+    suspend fun deleteEpisode(episode: PodcastEpisodeEntity)
+    suspend fun deleteEpisodeById(id: String)
+
+    // Hosting Configs
+    fun getAllHostingConfigs(): Flow<List<HostingConfigEntity>>
+    suspend fun getDefaultHostingConfig(): HostingConfigEntity?
+    suspend fun getHostingConfigById(id: String): HostingConfigEntity?
+    suspend fun insertHostingConfig(config: HostingConfigEntity)
+    suspend fun updateHostingConfig(config: HostingConfigEntity)
+    suspend fun deleteHostingConfig(config: HostingConfigEntity)
 }
 
 @Singleton
 class PublishingRepositoryImpl @Inject constructor(
     private val publishingDao: PublishingDao
 ) : PublishingRepository {
+    override fun getAllShows(): Flow<List<PodcastShowEntity>> = publishingDao.getAllShows()
+    override suspend fun getShowById(id: String): PodcastShowEntity? = publishingDao.getShowById(id)
+    override suspend fun insertShow(show: PodcastShowEntity) = publishingDao.insertShow(show)
+    override suspend fun updateShow(show: PodcastShowEntity) = publishingDao.updateShow(show)
+    override suspend fun deleteShow(show: PodcastShowEntity) = publishingDao.deleteShow(show)
+
     override fun getAllEpisodes(): Flow<List<PodcastEpisodeEntity>> = publishingDao.getAllEpisodes()
+    override fun getEpisodesForShow(showId: String): Flow<List<PodcastEpisodeEntity>> = publishingDao.getEpisodesForShow(showId)
+    override suspend fun getEpisodesForShowSync(showId: String): List<PodcastEpisodeEntity> = publishingDao.getEpisodesForShowSync(showId)
+    override suspend fun getEpisodeById(id: String): PodcastEpisodeEntity? = publishingDao.getEpisodeById(id)
     override suspend fun insertEpisode(episode: PodcastEpisodeEntity) = publishingDao.insertEpisode(episode)
     override suspend fun updateEpisode(episode: PodcastEpisodeEntity) = publishingDao.updateEpisode(episode)
+    override suspend fun deleteEpisode(episode: PodcastEpisodeEntity) = publishingDao.deleteEpisode(episode)
+    override suspend fun deleteEpisodeById(id: String) = publishingDao.deleteEpisodeById(id)
+
+    override fun getAllHostingConfigs(): Flow<List<HostingConfigEntity>> = publishingDao.getAllHostingConfigs()
+    override suspend fun getDefaultHostingConfig(): HostingConfigEntity? = publishingDao.getDefaultHostingConfig()
+    override suspend fun getHostingConfigById(id: String): HostingConfigEntity? = publishingDao.getHostingConfigById(id)
+    override suspend fun insertHostingConfig(config: HostingConfigEntity) = publishingDao.insertHostingConfig(config)
+    override suspend fun updateHostingConfig(config: HostingConfigEntity) = publishingDao.updateHostingConfig(config)
+    override suspend fun deleteHostingConfig(config: HostingConfigEntity) = publishingDao.deleteHostingConfig(config)
 }
 
 data class ModelStatus(

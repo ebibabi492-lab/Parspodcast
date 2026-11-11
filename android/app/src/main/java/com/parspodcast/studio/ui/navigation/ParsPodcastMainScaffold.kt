@@ -254,8 +254,10 @@ fun ParsPodcastMainScaffold(
             }
 
             composable(NavRoutes.PUBLISHER) {
+                val publisherViewModel: com.parspodcast.studio.ui.screens.publisher.PodcastPublisherViewModel = androidx.hilt.navigation.compose.hiltViewModel()
                 PodcastPublisherScreen(
-                    currentEpisodeTitle = "اپیزود ۴۳: تحولات پردازش لبه‌ای در تولید محتوا"
+                    currentEpisodeTitle = "اپیزود ۴۳: تحولات پردازش لبه‌ای در تولید محتوا",
+                    viewModel = publisherViewModel
                 )
             }
 
