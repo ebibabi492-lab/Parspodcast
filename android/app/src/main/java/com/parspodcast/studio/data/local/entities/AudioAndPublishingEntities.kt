@@ -21,13 +21,16 @@ import androidx.room.PrimaryKey
 data class AudioTrackEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "project_id") val projectId: String,
-    val trackType: String, // INTRO, PRESENTER_A, PRESENTER_B, BGM, SFX, OUTRO
+    val trackType: String, // INTRO, PRESENTER_A, PRESENTER_B, BGM, SFX, OUTRO, HOST_VOICE, AMBIENCE
     val displayNameFa: String,
     val volume: Float = 1.0f,
     val isMuted: Boolean = false,
     val isSolo: Boolean = false,
+    val isLocked: Boolean = false,
     val duckingEnabled: Boolean = false,
-    val pan: Float = 0.0f
+    val pan: Float = 0.0f, // -1.0 (Full Left) to +1.0 (Full Right)
+    val trackOrder: Int = 0,
+    val isVisible: Boolean = true
 )
 
 @Entity(
@@ -45,12 +48,17 @@ data class AudioTrackEntity(
 data class AudioClipEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "track_id") val trackId: String,
-    val startTimeMs: Long,
+    val startTimeMs: Long, // timelinePositionMs
     val durationMs: Long,
     val filePath: String,
+    val displayName: String = "",
+    val sourceStartMs: Long = 0L,
+    val sourceEndMs: Long = durationMs,
     val fadeInMs: Long = 0L,
     val fadeOutMs: Long = 0L,
-    val gainDb: Float = 0.0f
+    val gainDb: Float = 0.0f,
+    val isMuted: Boolean = false,
+    val clipOrder: Int = 0
 )
 
 @Entity(

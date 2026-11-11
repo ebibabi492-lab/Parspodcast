@@ -96,17 +96,47 @@ interface ProductionDao {
     @Update
     suspend fun updateSegment(segment: ScriptSegmentEntity)
 
-    @Query("SELECT * FROM audio_tracks WHERE project_id = :projectId")
+    @Query("SELECT * FROM audio_tracks WHERE project_id = :projectId ORDER BY trackOrder ASC")
     fun getTracksForProject(projectId: String): Flow<List<AudioTrackEntity>>
+
+    @Query("SELECT * FROM audio_tracks WHERE project_id = :projectId ORDER BY trackOrder ASC")
+    suspend fun getTracksForProjectSync(projectId: String): List<AudioTrackEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTracks(tracks: List<AudioTrackEntity>)
 
+    @Update
+    suspend fun updateTrack(track: AudioTrackEntity)
+
+    @Delete
+    suspend fun deleteTrack(track: AudioTrackEntity)
+
+    @Query("SELECT audio_clips.* FROM audio_clips INNER JOIN audio_tracks ON audio_clips.track_id = audio_tracks.id WHERE audio_tracks.project_id = :projectId ORDER BY startTimeMs ASC")
+    fun getAllClipsForProject(projectId: String): Flow<List<AudioClipEntity>>
+
+    @Query("SELECT audio_clips.* FROM audio_clips INNER JOIN audio_tracks ON audio_clips.track_id = audio_tracks.id WHERE audio_tracks.project_id = :projectId ORDER BY startTimeMs ASC")
+    suspend fun getAllClipsForProjectSync(projectId: String): List<AudioClipEntity>
+
     @Query("SELECT * FROM audio_clips WHERE track_id = :trackId ORDER BY startTimeMs ASC")
     fun getClipsForTrack(trackId: String): Flow<List<AudioClipEntity>>
 
+    @Query("SELECT * FROM audio_clips WHERE track_id = :trackId ORDER BY startTimeMs ASC")
+    suspend fun getClipsForTrackSync(trackId: String): List<AudioClipEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertClip(clip: AudioClipEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertClips(clips: List<AudioClipEntity>)
+
+    @Update
+    suspend fun updateClip(clip: AudioClipEntity)
+
+    @Delete
+    suspend fun deleteClip(clip: AudioClipEntity)
+
+    @Query("DELETE FROM audio_clips WHERE id = :clipId")
+    suspend fun deleteClipById(clipId: String)
 }
 
 @Dao

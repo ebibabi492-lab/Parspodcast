@@ -165,9 +165,19 @@ interface ProductionRepository {
     suspend fun insertSegments(segments: List<ScriptSegmentEntity>)
     suspend fun updateSegment(segment: ScriptSegmentEntity)
     fun getTracksForProject(projectId: String): Flow<List<AudioTrackEntity>>
+    suspend fun getTracksForProjectSync(projectId: String): List<AudioTrackEntity>
     suspend fun insertTracks(tracks: List<AudioTrackEntity>)
+    suspend fun updateTrack(track: AudioTrackEntity)
+    suspend fun deleteTrack(track: AudioTrackEntity)
+    fun getAllClipsForProject(projectId: String): Flow<List<AudioClipEntity>>
+    suspend fun getAllClipsForProjectSync(projectId: String): List<AudioClipEntity>
     fun getClipsForTrack(trackId: String): Flow<List<AudioClipEntity>>
+    suspend fun getClipsForTrackSync(trackId: String): List<AudioClipEntity>
     suspend fun insertClip(clip: AudioClipEntity)
+    suspend fun insertClips(clips: List<AudioClipEntity>)
+    suspend fun updateClip(clip: AudioClipEntity)
+    suspend fun deleteClip(clip: AudioClipEntity)
+    suspend fun deleteClipById(clipId: String)
 }
 
 @Singleton
@@ -183,10 +193,22 @@ class ProductionRepositoryImpl @Inject constructor(
     override fun getSegmentsForScript(scriptId: String): Flow<List<ScriptSegmentEntity>> = productionDao.getSegmentsForScript(scriptId)
     override suspend fun insertSegments(segments: List<ScriptSegmentEntity>) = productionDao.insertSegments(segments)
     override suspend fun updateSegment(segment: ScriptSegmentEntity) = productionDao.updateSegment(segment)
+
     override fun getTracksForProject(projectId: String): Flow<List<AudioTrackEntity>> = productionDao.getTracksForProject(projectId)
+    override suspend fun getTracksForProjectSync(projectId: String): List<AudioTrackEntity> = productionDao.getTracksForProjectSync(projectId)
     override suspend fun insertTracks(tracks: List<AudioTrackEntity>) = productionDao.insertTracks(tracks)
+    override suspend fun updateTrack(track: AudioTrackEntity) = productionDao.updateTrack(track)
+    override suspend fun deleteTrack(track: AudioTrackEntity) = productionDao.deleteTrack(track)
+
+    override fun getAllClipsForProject(projectId: String): Flow<List<AudioClipEntity>> = productionDao.getAllClipsForProject(projectId)
+    override suspend fun getAllClipsForProjectSync(projectId: String): List<AudioClipEntity> = productionDao.getAllClipsForProjectSync(projectId)
     override fun getClipsForTrack(trackId: String): Flow<List<AudioClipEntity>> = productionDao.getClipsForTrack(trackId)
+    override suspend fun getClipsForTrackSync(trackId: String): List<AudioClipEntity> = productionDao.getClipsForTrackSync(trackId)
     override suspend fun insertClip(clip: AudioClipEntity) = productionDao.insertClip(clip)
+    override suspend fun insertClips(clips: List<AudioClipEntity>) = productionDao.insertClips(clips)
+    override suspend fun updateClip(clip: AudioClipEntity) = productionDao.updateClip(clip)
+    override suspend fun deleteClip(clip: AudioClipEntity) = productionDao.deleteClip(clip)
+    override suspend fun deleteClipById(clipId: String) = productionDao.deleteClipById(clipId)
 }
 
 interface VoiceRepository {
