@@ -186,9 +186,56 @@ fun ParsPodcastMainScaffold(
             }
 
             composable(NavRoutes.SCRIPT_STUDIO) {
+                var engineState by remember { mutableStateOf<EngineLoadingState>(EngineLoadingState.Uninitialized) }
+                var isInstalled by remember { mutableStateOf(false) }
+                var genState by remember { mutableStateOf<ScriptGenerationUiState>(ScriptGenerationUiState.Idle) }
+                var genSettings by remember { mutableStateOf(GenerationSettings()) }
+                var scriptSegments by remember {
+                    mutableStateOf(
+                        listOf(
+                            ScriptSegmentEntity("seg_1", "script_1", 1, "INTRO", "PRESENTER_A", "به استودیوی پارس‌پادکست خوش آمدید. امروز با بررسی تازه‌ترین رویدادهای هوش مصنوعی محلی در خدمت شما هستیم.", 14, isApproved = true),
+                            ScriptSegmentEntity("seg_2", "script_1", 2, "NEWS", "PRESENTER_A", "در سرخط اخبار: مدل Gemma 4 E4B بر روی پردازنده‌های موبایل با معماری LiteRT بدون نیاز به اینترنت اجرا می‌شود.", 22, isApproved = true),
+                            ScriptSegmentEntity("seg_3", "script_1", 3, "DISCUSSION", "PRESENTER_B", "نکته مهم حفظ ۱۰۰٪ محرمانگی و عدم وابستگی به هیچ‌گونه سرور ابری است.", 18, isApproved = true),
+                            ScriptSegmentEntity("seg_4", "script_1", 4, "OUTRO", "PRESENTER_A", "سپاس از همراهی شما. تا برنامه‌ای دیگر خدانگهدار.", 15, isApproved = true)
+                        )
+                    )
+                }
+
                 ScriptStudioScreen(
-                    onNavigateToVoiceStudio = { navigateTo(NavRoutes.VOICE_STUDIO) },
-                    isLocalModelAvailable = false
+                    engineState = engineState,
+                    isModelFileInstalled = isInstalled,
+                    generationUiState = genState,
+                    generationSettings = genSettings,
+                    segments = scriptSegments,
+                    selectedArticles = sampleArticles.filter { selectedNewsIds.contains(it.id) },
+                    onLoadModel = {
+                        engineState = EngineLoadingState.Ready("GPU (OpenCL / Vulkan)", "/data/user/0/com.parspodcast.studio/files/models/gemma-4-E4B-it.litertlm", 1950L)
+                    },
+                    onUnloadModel = {
+                        engineState = EngineLoadingState.Uninitialized
+                    },
+                    onUpdateSettings = { genSettings = it },
+                    onGenerateFullScript = { title, duration, isDual, tone ->
+                        genState = ScriptGenerationUiState.Generating("در حال تدوین دیالوگ‌های فارسی بر پایه فکت‌های خبری...", 48, 1200L)
+                    },
+                    onCancelGeneration = {
+                        genState = ScriptGenerationUiState.Idle
+                    },
+                    onUpdateSegmentText = { id, text ->
+                        scriptSegments = scriptSegments.map { if (it.id == id) it.copy(textFa = text) else it }
+                    },
+                    onToggleSpeaker = { id ->
+                        scriptSegments = scriptSegments.map {
+                            if (it.id == id) it.copy(speakerRole = if (it.speakerRole == "PRESENTER_A") "PRESENTER_B" else "PRESENTER_A") else it
+                        }
+                    },
+                    onRewriteSegment = { id, _ -> },
+                    onSummarizeSegment = { id -> },
+                    onExpandSegment = { id, _ -> },
+                    onChangeToneSegment = { id, _ -> },
+                    onSaveDraft = { },
+                    onNavigateToModelManager = { navigateTo(NavRoutes.MODEL_MANAGER) },
+                    onNavigateToVoiceStudio = { navigateTo(NavRoutes.VOICE_STUDIO) }
                 )
             }
 
@@ -220,9 +267,52 @@ fun ParsPodcastMainScaffold(
             }
 
             composable(NavRoutes.MODEL_MANAGER) {
+                var isInstalled by remember { mutableStateOf(false) }
+                var copyProgress by remember { mutableStateOf<Float?>(null) }
+                var engineState by remember { mutableStateOf<EngineLoadingState>(EngineLoadingState.Uninitialized) }
+
+                val capabilityReport = remember {
+                    DeviceCapabilityReport(
+                        androidVersion = "Android 15 (API 35)",
+                        deviceModel = "Daria Band (5G)",
+                        cpuAbi = "arm64-v8a",
+                        totalRamMb = 8192L,
+                        availableRamMb = 4850L,
+                        totalStorageMb = 256000L,
+                        availableStorageMb = 142000L,
+                        isRamSufficientForE4B = true,
+                        isStorageSufficientForE4B = true,
+                        recommendedBackend = ModelExecutionBackend.GPU
+                    )
+                }
+
                 ModelManagerScreen(
                     models = modelStatuses,
-                    onToggleModelLoaded = { _, _ -> }
+                    isModelInstalled = isInstalled,
+                    engineLoadingState = engineState,
+                    capabilityReport = capabilityReport,
+                    copyProgress = copyProgress,
+                    onImportModelUri = {
+                        copyProgress = 0.05f
+                        // Simulating chunked SAF copy progress
+                        copyProgress = 1.0f
+                        isInstalled = true
+                        copyProgress = null
+                    },
+                    onLoadModel = { backend ->
+                        engineState = EngineLoadingState.Ready(
+                            backend = if (backend == ModelExecutionBackend.GPU) "GPU (OpenCL)" else "CPU (XNNPACK)",
+                            modelPath = "/data/user/0/com.parspodcast.studio/files/models/gemma-4-E4B-it.litertlm",
+                            ramUsageMb = 1950L
+                        )
+                    },
+                    onUnloadModel = {
+                        engineState = EngineLoadingState.Uninitialized
+                    },
+                    onDeleteModel = {
+                        isInstalled = false
+                        engineState = EngineLoadingState.Uninitialized
+                    }
                 )
             }
 

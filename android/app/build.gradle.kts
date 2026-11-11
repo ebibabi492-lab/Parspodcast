@@ -89,4 +89,7 @@ dependencies {
 
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
+
+    // Google AI Edge LiteRT-LM (Gemma 4 on-device local inference)
+    implementation(libs.litertlm.android)
 }
