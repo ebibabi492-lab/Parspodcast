@@ -1,0 +1,6 @@
+{
+  "name": "ParsPodcast Studio",
+  "description": "استودیوی بومی تولید پادکست و خبر صوتی با هوش مصنوعی آفلاین، پشتیبانی کامل زبان فارسی، تقویم جلالی، مدل‌های محلی گما و موتور میکس چندترکه",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

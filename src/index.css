@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  * {
+    font-family: 'Vazirmatn', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+  
+  .font-mono, [data-mono="true"] {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Custom scrollbar for dark broadcasting studio */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0B132B;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1C2541;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #00B4D8;
+  }
+}
