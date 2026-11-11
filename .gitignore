@@ -1,3 +1,4 @@
+# Node.js & Web Applet
 node_modules/
 build/
 dist/
@@ -6,3 +7,41 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Android & Gradle Build Artifacts
+.gradle/
+android/.gradle/
+android/build/
+android/app/build/
+*.apk
+*.aab
+*.ap_
+local.properties
+.idea/
+*.iml
+
+# AI Model Binaries (Gemma 4 E4B 4.6GB, Mana ONNX)
+*.onnx
+*.bin
+*.tflite
+*.litertlm
+*.gguf
+models/
+android/app/src/main/assets/models/
+
+# User Audio Recordings, Studio Mixes & Private Exports
+*.wav
+*.m4a
+*.mp3
+*.aac
+podcasts/exports/
+podcasts/artwork/
+audio/
+
+# Secrets, Keystores & Signing Keys
+*.jks
+*.keystore
+*.p12
+signing/
+release.keystore
+webdav_secrets.json
