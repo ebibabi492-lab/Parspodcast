@@ -13,22 +13,145 @@ interface NewsRepository {
     fun getAllArticles(): Flow<List<NewsArticleEntity>>
     fun getAllEvents(): Flow<List<NewsEventEntity>>
     suspend fun insertSource(source: NewsSourceEntity)
+    suspend fun updateSource(source: NewsSourceEntity)
     suspend fun deleteSource(source: NewsSourceEntity)
-    suspend fun insertArticles(articles: List<NewsArticleEntity>)
+    suspend fun insertArticles(articles: List<NewsArticleEntity>): List<Long>
+    suspend fun updateArticle(article: NewsArticleEntity)
+    suspend fun deleteArticle(article: NewsArticleEntity)
+    suspend fun deleteArticles(articles: List<NewsArticleEntity>)
+    suspend fun toggleFavorite(articleId: String, isFavorite: Boolean)
+    suspend fun markAsRead(articleId: String, isRead: Boolean)
     suspend fun insertEvent(event: NewsEventEntity)
+    suspend fun syncAllFeeds(): Result<com.parspodcast.studio.domain.news.SyncSummary>
+    suspend fun testFeed(url: String): Result<Pair<String, Int>>
+    suspend fun saveDrafts(drafts: List<com.parspodcast.studio.domain.news.ParsedNewsDraft>): Result<Int>
 }
 
 @Singleton
 class NewsRepositoryImpl @Inject constructor(
-    private val newsDao: NewsDao
+    private val newsDao: NewsDao,
+    private val rssFetcher: com.parspodcast.studio.data.news.RssFeedFetcher
 ) : NewsRepository {
     override fun getAllSources(): Flow<List<NewsSourceEntity>> = newsDao.getAllSources()
     override fun getAllArticles(): Flow<List<NewsArticleEntity>> = newsDao.getAllArticles()
     override fun getAllEvents(): Flow<List<NewsEventEntity>> = newsDao.getAllEvents()
+
     override suspend fun insertSource(source: NewsSourceEntity) = newsDao.insertSource(source)
+    override suspend fun updateSource(source: NewsSourceEntity) = newsDao.updateSource(source)
     override suspend fun deleteSource(source: NewsSourceEntity) = newsDao.deleteSource(source)
-    override suspend fun insertArticles(articles: List<NewsArticleEntity>) { newsDao.insertArticles(articles) }
+
+    override suspend fun insertArticles(articles: List<NewsArticleEntity>): List<Long> = newsDao.insertArticles(articles)
+    override suspend fun updateArticle(article: NewsArticleEntity) = newsDao.updateArticle(article)
+    override suspend fun deleteArticle(article: NewsArticleEntity) = newsDao.deleteArticle(article)
+    override suspend fun deleteArticles(articles: List<NewsArticleEntity>) = newsDao.deleteArticles(articles)
+
+    override suspend fun toggleFavorite(articleId: String, isFavorite: Boolean) {
+        newsDao.setArticleFavorite(articleId, isFavorite)
+    }
+
+    override suspend fun markAsRead(articleId: String, isRead: Boolean) {
+        newsDao.setArticleRead(articleId, isRead)
+    }
+
     override suspend fun insertEvent(event: NewsEventEntity) = newsDao.insertEvent(event)
+
+    override suspend fun testFeed(url: String): Result<Pair<String, Int>> {
+        return rssFetcher.testFeed(url)
+    }
+
+    override suspend fun syncAllFeeds(): Result<com.parspodcast.studio.domain.news.SyncSummary> {
+        val sources = kotlinx.coroutines.flow.first(newsDao.getAllSources()).filter { it.isActive }
+        var totalSynced = 0
+        var successCount = 0
+        var failCount = 0
+        val errors = mutableListOf<String>()
+
+        for (source in sources) {
+            val fetchResult = rssFetcher.fetchFeed(source.feedUrl, source.name, source.category)
+            if (fetchResult.isSuccess) {
+                val drafts = fetchResult.getOrDefault(emptyList())
+                val entities = drafts.map { draft ->
+                    NewsArticleEntity(
+                        id = "art_${java.util.UUID.randomUUID()}",
+                        sourceId = source.id,
+                        sourceName = source.name,
+                        title = draft.title,
+                        content = draft.content,
+                        originalUrl = draft.articleUrl,
+                        author = draft.author,
+                        category = draft.category,
+                        publishedAtUtc = draft.publishedAtUtc,
+                        importedAtUtc = System.currentTimeMillis(),
+                        rawSummary = draft.summary,
+                        deduplicationHash = draft.contentHash,
+                        inputType = draft.inputType.name,
+                        originalContent = draft.content
+                    )
+                }
+                val insertedIds = newsDao.insertArticles(entities)
+                val newCount = insertedIds.count { it != -1L }
+                totalSynced += newCount
+                successCount++
+                newsDao.updateSourceSyncStatus(source.id, System.currentTimeMillis(), 0, null, source.articleCount + newCount)
+            } else {
+                failCount++
+                val err = fetchResult.exceptionOrNull()?.message ?: "خطای ناشناخته در دریافت فید"
+                errors.add("${source.name}: $err")
+                newsDao.updateSourceSyncStatus(source.id, source.lastFetchedUtc, source.fetchErrorCount + 1, err, source.articleCount)
+            }
+        }
+
+        return Result.success(
+            com.parspodcast.studio.domain.news.SyncSummary(
+                totalSynced = totalSynced,
+                sourcesSuccess = successCount,
+                sourcesFailed = failCount,
+                errors = errors
+            )
+        )
+    }
+
+    override suspend fun saveDrafts(drafts: List<com.parspodcast.studio.domain.news.ParsedNewsDraft>): Result<Int> {
+        val selected = drafts.filter { it.isSelected }
+        if (selected.isEmpty()) return Result.success(0)
+
+        // Ensure default offline source exists in database
+        val offlineSource = NewsSourceEntity(
+            id = "src_offline_file",
+            name = "ورود آفلاین از فایل",
+            feedUrl = "file://local_storage",
+            parserType = "OFFLINE_FILE",
+            category = "عمومی",
+            isActive = true,
+            lastFetchedUtc = System.currentTimeMillis()
+        )
+        newsDao.insertSource(offlineSource)
+
+        val entities = selected.map { draft ->
+            NewsArticleEntity(
+                id = "art_off_${java.util.UUID.randomUUID()}",
+                sourceId = "src_offline_file",
+                sourceName = draft.sourceName,
+                title = draft.title,
+                content = draft.content,
+                originalUrl = draft.articleUrl,
+                author = draft.author,
+                category = draft.category,
+                publishedAtUtc = draft.publishedAtUtc,
+                importedAtUtc = System.currentTimeMillis(),
+                rawSummary = draft.summary,
+                deduplicationHash = draft.contentHash.ifBlank {
+                    com.parspodcast.studio.domain.news.NewsNormalizer.computeContentHash(draft.title, draft.content)
+                },
+                inputType = draft.inputType.name,
+                originalContent = draft.content
+            )
+        }
+
+        val insertedIds = newsDao.insertArticles(entities)
+        val successCount = insertedIds.count { it != -1L }
+        return Result.success(successCount)
+    }
 }
 
 interface ProductionRepository {

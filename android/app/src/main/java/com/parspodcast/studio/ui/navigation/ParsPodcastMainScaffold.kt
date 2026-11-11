@@ -175,12 +175,6 @@ fun ParsPodcastMainScaffold(
 
             composable(NavRoutes.NEWS_CENTER) {
                 NewsCenterScreen(
-                    articles = sampleArticles,
-                    sources = sampleSources,
-                    selectedArticleIds = selectedNewsIds,
-                    onToggleSelectArticle = { id ->
-                        selectedNewsIds = if (selectedNewsIds.contains(id)) selectedNewsIds - id else selectedNewsIds + id
-                    },
                     onNavigateToScriptStudio = { navigateTo(NavRoutes.SCRIPT_STUDIO) }
                 )
             }

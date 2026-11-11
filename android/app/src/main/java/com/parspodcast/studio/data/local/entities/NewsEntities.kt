@@ -11,38 +11,42 @@ data class NewsSourceEntity(
     @PrimaryKey val id: String,
     val name: String,
     val feedUrl: String,
-    val parserType: String, // RSS, ATOM, HTML_CUSTOM
-    val category: String, // فناوری، اقتصاد، سیاست، فرهنگ، بین‌الملل
+    val parserType: String, // RSS, ATOM, OFFLINE_FILE
+    val category: String, // فناوری، اقتصاد، سیاست، فرهنگ، بین‌الملل، علمی، اجتماعی، ورزشی، سلامت، عمومی
     val updateIntervalMins: Int = 60,
     val isActive: Boolean = true,
     val lastFetchedUtc: Long = 0L,
-    val fetchErrorCount: Int = 0
+    val fetchErrorCount: Int = 0,
+    val lastErrorMessage: String? = null,
+    val articleCount: Int = 0
 )
 
 @Entity(
     tableName = "news_articles",
-    foreignKeys = [
-        ForeignKey(
-            entity = NewsSourceEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["source_id"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
     indices = [
         Index("source_id"),
-        Index(value = ["deduplication_hash"], unique = true)
+        Index(value = ["deduplication_hash"], unique = true),
+        Index("category"),
+        Index("inputType")
     ]
 )
 data class NewsArticleEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "source_id") val sourceId: String,
+    val sourceName: String = "منبع ناشناس",
     val title: String,
     val content: String,
-    val originalUrl: String,
+    val originalUrl: String? = null,
+    val author: String? = null,
+    val category: String = "عمومی",
     val publishedAtUtc: Long,
+    val importedAtUtc: Long = System.currentTimeMillis(),
     val rawSummary: String,
     @ColumnInfo(name = "deduplication_hash") val deduplicationHash: String,
+    val inputType: String = "RSS", // RSS, ATOM, TXT, MARKDOWN, CSV
+    val isFavorite: Boolean = false,
+    val isRead: Boolean = false,
+    val originalContent: String = "",
     val keywordsJson: String = "[]",
     val isProcessedForIntelligence: Boolean = false
 )

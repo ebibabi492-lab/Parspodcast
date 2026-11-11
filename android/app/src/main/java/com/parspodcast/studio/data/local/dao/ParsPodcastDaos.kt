@@ -9,8 +9,14 @@ interface NewsDao {
     @Query("SELECT * FROM news_sources ORDER BY name ASC")
     fun getAllSources(): Flow<List<NewsSourceEntity>>
 
+    @Query("SELECT * FROM news_sources WHERE id = :sourceId")
+    suspend fun getSourceById(sourceId: String): NewsSourceEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSource(source: NewsSourceEntity)
+
+    @Update
+    suspend fun updateSource(source: NewsSourceEntity)
 
     @Delete
     suspend fun deleteSource(source: NewsSourceEntity)
@@ -18,8 +24,38 @@ interface NewsDao {
     @Query("SELECT * FROM news_articles ORDER BY publishedAtUtc DESC")
     fun getAllArticles(): Flow<List<NewsArticleEntity>>
 
+    @Query("SELECT * FROM news_articles WHERE id = :id")
+    suspend fun getArticleById(id: String): NewsArticleEntity?
+
+    @Query("SELECT * FROM news_articles WHERE deduplication_hash = :hash LIMIT 1")
+    suspend fun getArticleByHash(hash: String): NewsArticleEntity?
+
+    @Query("SELECT * FROM news_articles WHERE title = :title AND sourceName = :sourceName LIMIT 1")
+    suspend fun getArticleByTitleAndSource(title: String, sourceName: String): NewsArticleEntity?
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertArticles(articles: List<NewsArticleEntity>): List<Long>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertArticle(article: NewsArticleEntity)
+
+    @Update
+    suspend fun updateArticle(article: NewsArticleEntity)
+
+    @Delete
+    suspend fun deleteArticle(article: NewsArticleEntity)
+
+    @Delete
+    suspend fun deleteArticles(articles: List<NewsArticleEntity>)
+
+    @Query("UPDATE news_articles SET isFavorite = :isFavorite WHERE id = :articleId")
+    suspend fun setArticleFavorite(articleId: String, isFavorite: Boolean)
+
+    @Query("UPDATE news_articles SET isRead = :isRead WHERE id = :articleId")
+    suspend fun setArticleRead(articleId: String, isRead: Boolean)
+
+    @Query("UPDATE news_sources SET lastFetchedUtc = :timestamp, fetchErrorCount = :errorCount, lastErrorMessage = :errorMsg, articleCount = :articleCount WHERE id = :sourceId")
+    suspend fun updateSourceSyncStatus(sourceId: String, timestamp: Long, errorCount: Int, errorMsg: String?, articleCount: Int)
 
     @Query("SELECT * FROM news_events ORDER BY lastReportedUtc DESC")
     fun getAllEvents(): Flow<List<NewsEventEntity>>
