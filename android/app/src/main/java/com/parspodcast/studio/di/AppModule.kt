@@ -80,4 +80,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindLocalLLMProvider(impl: LiteRTLMEngine): LocalLLMProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindTTSProvider(impl: com.parspodcast.studio.data.tts.SherpaOnnxTtsEngine): com.parspodcast.studio.domain.tts.TTSProvider
 }

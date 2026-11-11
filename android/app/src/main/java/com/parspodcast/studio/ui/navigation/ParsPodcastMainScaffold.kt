@@ -241,8 +241,7 @@ fun ParsPodcastMainScaffold(
 
             composable(NavRoutes.VOICE_STUDIO) {
                 VoiceStudioScreen(
-                    onNavigateToMixer = { navigateTo(NavRoutes.AUDIO_MIXER) },
-                    isTtsEngineInstalled = false
+                    onNavigateToMixer = { navigateTo(NavRoutes.AUDIO_MIXER) }
                 )
             }
 

@@ -52,6 +52,13 @@ android {
     buildFeatures {
         compose = true
     }
+
+    packaging {
+        resources {
+            pickFirsts.add("**/BuildConfig.class")
+            pickFirsts.add("META-INF/*")
+        }
+    }
 }
 
 dependencies {
@@ -92,4 +99,7 @@ dependencies {
 
     // Google AI Edge LiteRT-LM (Gemma 4 on-device local inference)
     implementation(libs.litertlm.android)
+
+    // Sherpa-ONNX (Offline Persian Piper TTS)
+    implementation(libs.sherpa.onnx)
 }
